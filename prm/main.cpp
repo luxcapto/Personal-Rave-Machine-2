@@ -1,15 +1,22 @@
 //*****************************************//
-//  cmidiin.cpp
-//  by Gary Scavone, 2003-2004.
-//
-//  Simple program to test MIDI input and
-//  use of a user callback function.
+// Credits:
+//	RtMidi, Gary Scavone
+//  Fadecandy, scanlime
 //
 //*****************************************//
 
+// RtMidi includes
 #include <iostream>
 #include <cstdlib>
-#include "rtmidi/RtMidi.h"
+#include "lib/RtMidi.h"
+
+// Fadecandy includes
+#include <math.h>
+#include "lib/color.h"
+#include "lib/effect.h"
+#include "lib/effect_runner.h"
+#include "lib/noise.h"
+
 
 void usage( void ) {
   // Error function in case of incorrect command-line
@@ -33,8 +40,45 @@ void mycallback( double deltatime, std::vector< unsigned char > *message, void *
 // It returns false if there are no ports available.
 bool chooseMidiPort( RtMidiIn *rtmidi );
 
-int main( int argc, char ** /*argv[]*/ )
+// Fadecandy effect class
+class MyEffect : public Effect
 {
+public:
+    MyEffect()
+        : cycle (0) {}
+
+    float cycle;
+
+    virtual void beginFrame(const FrameInfo &f)
+    {
+        const float speed = 10.0;
+        cycle = fmodf(cycle + f.timeDelta * speed, 2 * M_PI);
+    }
+
+    virtual void shader(Vec3& rgb, const PixelInfo &p) const
+    {
+        float distance = len(p.point);
+        float wave = sinf(3.0 * distance - cycle) + noise3(p.point);
+        hsv2rgb(rgb, 0.2, 0.3, wave);
+    }
+};
+
+
+
+int main( int argc, char **argv )
+{
+    EffectRunner r;
+
+    MyEffect e;
+    r.setEffect(&e);
+
+    // Defaults, overridable with command line options
+    r.setMaxFrameRate(100);
+    r.setLayout("../layouts/grid32x16z.json");
+
+    //return r.main(argc, argv);
+
+
   RtMidiIn *midiin = 0;
 
   // Minimal command-line check.
@@ -68,7 +112,8 @@ int main( int argc, char ** /*argv[]*/ )
 
   delete midiin;
 
-  return 0;
+  return r.main(argc, argv);
+  //return 0;
 }
 
 bool chooseMidiPort( RtMidiIn *rtmidi )

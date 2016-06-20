@@ -4,7 +4,7 @@ PROGRAMS = main
 CFLAGS = -O3 -ffast-math -fno-rtti
 
 # Standard libraries
-LFLAGS = -lm -lstdc++ -lpthread
+LFLAGS = -lm -lstdc++ -lpthread -lrtmidi
 
 # Debugging
 CFLAGS += -g -Wall
