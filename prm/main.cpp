@@ -1,7 +1,7 @@
 //*****************************************//
-// Credits:
-//	RtMidi, Gary Scavone
-//  Fadecandy, scanlime
+//  Credits:
+//      RtMidi, Gary Scavone
+//      Fadecandy, scanlime
 //
 //*****************************************//
 
@@ -19,11 +19,11 @@
 
 
 void usage( void ) {
-  // Error function in case of incorrect command-line
-  // argument specifications.
-  std::cout << "\nuseage: cmidiin <port>\n";
-  std::cout << "    where port = the device to use (default = 0).\n\n";
-  exit( 0 );
+// Error function in case of incorrect command-line
+// argument specifications.
+std::cout << "\nuseage: cmidiin <port>\n";
+std::cout << "    where port = the device to use (default = 0).\n\n";
+exit( 0 );
 }
 
 void mycallback( double deltatime, std::vector< unsigned char > *message, void */*userData*/ )
@@ -85,22 +85,19 @@ public:
     }
 };
 
-
-
-
 int main( int argc, char **argv )
 {
-    EffectRunner r;
-
-    MyEffect e;
-		SlowEffect e2;
-    r.setEffect(&e);
-
-    // Defaults, overridable with command line options
-    r.setMaxFrameRate(100);
-    r.setLayout("layouts/grid32x16z.json");
-
-    //return r.main(argc, argv);
+  EffectRunner r;
+  
+  MyEffect e;
+  SlowEffect e2;
+  r.setEffect(&e);
+  
+  // Defaults, overridable with command line options
+  r.setMaxFrameRate(100);
+  r.setLayout("layouts/grid32x16z.json");
+  
+  //return r.main(argc, argv);
 
 
   RtMidiIn *midiin = 0;
