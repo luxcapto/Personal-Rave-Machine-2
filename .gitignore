@@ -7,13 +7,31 @@
 target/
 .classpath
 .project
-/rtmidi/config
-/rtmidi/configure
-/rtmidi/Makefile.in
-/rtmidi/aclocal.m4
-/rtmidi/autom4te.cache
-/rtmidi/configure
-/rtmidi/m4
-/rtmidi/doc/Makefile.in
-/rtmidi/tests/Makefile.in
+*.slo
+*.lo
+*.o
+*.obj
 
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
