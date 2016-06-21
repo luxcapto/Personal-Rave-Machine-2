@@ -11,6 +11,7 @@ target/
 *.lo
 *.o
 *.obj
+*.d
 
 # Precompiled Headers
 *.gch
