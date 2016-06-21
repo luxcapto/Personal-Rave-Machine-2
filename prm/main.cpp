@@ -63,6 +63,29 @@ public:
     }
 };
 
+class SlowEffect : public Effect
+{
+public:
+    SlowEffect()
+        : cycle (0) {}
+
+    float cycle;
+
+    virtual void beginFrame(const FrameInfo &f)
+    {
+        const float speed = 1.0;
+        cycle = fmodf(cycle + f.timeDelta * speed, 2 * M_PI);
+    }
+
+    virtual void shader(Vec3& rgb, const PixelInfo &p) const
+    {
+        float distance = len(p.point);
+        float wave = sinf(3.0 * distance - cycle) + noise3(p.point);
+        hsv2rgb(rgb, 0.2, 0.3, wave);
+    }
+};
+
+
 
 
 int main( int argc, char **argv )
@@ -70,11 +93,12 @@ int main( int argc, char **argv )
     EffectRunner r;
 
     MyEffect e;
+		SlowEffect e2;
     r.setEffect(&e);
 
     // Defaults, overridable with command line options
     r.setMaxFrameRate(100);
-    r.setLayout("../layouts/grid32x16z.json");
+    r.setLayout("layouts/grid32x16z.json");
 
     //return r.main(argc, argv);
 
@@ -100,6 +124,8 @@ int main( int argc, char **argv )
     // Don't ignore sysex, timing, or active sensing messages.
     midiin->ignoreTypes( false, false, false );
 
+    return r.main(argc, argv);
+
     std::cout << "\nReading MIDI input ... press <enter> to quit.\n";
     char input;
     std::cin.get(input);
@@ -108,11 +134,10 @@ int main( int argc, char **argv )
     error.printMessage();
   }
 
- cleanup:
+  cleanup:
 
   delete midiin;
 
-  return r.main(argc, argv);
   //return 0;
 }
 
