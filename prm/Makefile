@@ -1,4 +1,5 @@
-PROGRAMS = main 
+OBJS = main.o effects.o
+PROGRAM = main 
 
 # Important optimization options
 CFLAGS = -O3 -ffast-math -fno-rtti
@@ -13,13 +14,14 @@ LFLAGS += -g
 # Annoying warnings on by default on Mac OS
 CFLAGS += -Wno-tautological-constant-out-of-range-compare -Wno-gnu-static-float-init
 
+all: $(OBJS)
+	$(CC) $(OBJS) -o $(PROGRAM) $(LFLAGS)
 
-all: $(PROGRAMS)
+-include $(OBJS:.o=.d)
 
-.cpp:
-	$(CC) $(CFLAGS) $< -o $@ $(LFLAGS)
-
-.PHONY: clean all
+%.o: %.cpp
+	$(CC) -c $(DEBUG) $(CFLAGS) $*.cpp -o $*.o
+	$(CC) -MM $(DEBUG) $(CFLAGS) $*.cpp > $*.d
 
 clean:
-	rm -f $(PROGRAMS)
+	$(RM) $(PROGRAM) *.o

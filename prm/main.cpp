@@ -1,22 +1,13 @@
-//*****************************************//
-//  Credits:
-//      RtMidi, Gary Scavone
-//      Fadecandy, scanlime
-//
-//*****************************************//
-
-// RtMidi includes
 #include <iostream>
 #include <cstdlib>
 #include "lib/RtMidi.h"
+#include "globals.hpp"
+#include "effects.hpp"
 
-// Fadecandy includes
-#include <math.h>
-#include "lib/color.h"
-#include "lib/effect.h"
-#include "lib/effect_runner.h"
-#include "lib/noise.h"
-
+char loop;
+args_t arguments;
+effects_t effects;
+pthread_mutex_t lock;
 
 void usage( void ) {
 // Error function in case of incorrect command-line
@@ -33,6 +24,14 @@ void mycallback( double deltatime, std::vector< unsigned char > *message, void *
     std::cout << "Byte " << i << " = " << (int)message->at(i) << ", ";
   if ( nBytes > 0 )
     std::cout << "stamp = " << deltatime << std::endl;
+	if (nBytes == 3 && (int)message->at(0) == 144) {
+		unsigned char note = message->at(1);
+		pthread_mutex_lock(&lock);
+		effects.effect = note;
+		pthread_mutex_unlock(&lock);
+	}
+		
+		
 }
 
 // This function should be embedded in a try/catch block in case of
@@ -40,77 +39,27 @@ void mycallback( double deltatime, std::vector< unsigned char > *message, void *
 // It returns false if there are no ports available.
 bool chooseMidiPort( RtMidiIn *rtmidi );
 
-// Fadecandy effect class
-class MyEffect : public Effect
-{
-public:
-    MyEffect()
-        : cycle (0) {}
-
-    float cycle;
-
-    virtual void beginFrame(const FrameInfo &f)
-    {
-        const float speed = 10.0;
-        cycle = fmodf(cycle + f.timeDelta * speed, 2 * M_PI);
-    }
-
-    virtual void shader(Vec3& rgb, const PixelInfo &p) const
-    {
-        float distance = len(p.point);
-        float wave = sinf(3.0 * distance - cycle) + noise3(p.point);
-        hsv2rgb(rgb, 0.2, 0.3, wave);
-    }
-};
-
-class SlowEffect : public Effect
-{
-public:
-    SlowEffect()
-        : cycle (0) {}
-
-    float cycle;
-
-    virtual void beginFrame(const FrameInfo &f)
-    {
-        const float speed = 1.0;
-        cycle = fmodf(cycle + f.timeDelta * speed, 2 * M_PI);
-    }
-
-    virtual void shader(Vec3& rgb, const PixelInfo &p) const
-    {
-        float distance = len(p.point);
-        float wave = sinf(3.0 * distance - cycle) + noise3(p.point);
-        hsv2rgb(rgb, 0.2, 0.3, wave);
-    }
-};
-
 int main( int argc, char **argv )
 {
-  EffectRunner r;
-  
-  MyEffect e;
-  SlowEffect e2;
-  r.setEffect(&e);
-  
-  // Defaults, overridable with command line options
-  r.setMaxFrameRate(100);
-  r.setLayout("layouts/grid32x16z.json");
-  
-  //return r.main(argc, argv);
+	int return_value;
+	pthread_t effects_thread;
+	loop = 1;
+	lock = PTHREAD_MUTEX_INITIALIZER;
+	arguments.argc = &argc;
+	arguments.argv = argv;
 
 
   RtMidiIn *midiin = 0;
 
   // Minimal command-line check.
-  if ( argc > 2 ) usage();
+  //if ( argc > 2 ) usage();
 
   try {
 
     // RtMidiIn constructor
     midiin = new RtMidiIn();
 
-    // Call function to select port.
+    // Call function to select port. 
     if ( chooseMidiPort( midiin ) == false ) goto cleanup;
 
     // Set our callback function.  This should be done immediately after
@@ -120,23 +69,26 @@ int main( int argc, char **argv )
 
     // Don't ignore sysex, timing, or active sensing messages.
     midiin->ignoreTypes( false, false, false );
-
-    return r.main(argc, argv);
+		
+		return_value = pthread_create(&effects_thread, NULL, effects_main, NULL);
 
     std::cout << "\nReading MIDI input ... press <enter> to quit.\n";
     char input;
     std::cin.get(input);
+		
+		loop = 0;
+		pthread_join(effects_thread, NULL);
+		
 
   } catch ( RtMidiError &error ) {
     error.printMessage();
   }
 
   cleanup:
-
   delete midiin;
-
-  //return 0;
+  return 0;
 }
+
 
 bool chooseMidiPort( RtMidiIn *rtmidi )
 {
