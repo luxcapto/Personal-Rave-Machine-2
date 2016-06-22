@@ -3,10 +3,11 @@
 #include "lib/RtMidi.h"
 #include "globals.hpp"
 #include "effects.hpp"
+using namespace std;
 
 char loop;
 args_t arguments;
-effects_t effects;
+effects_t effect;
 pthread_mutex_t lock;
 
 void usage( void ) {
@@ -19,19 +20,28 @@ exit( 0 );
 
 void mycallback( double deltatime, std::vector< unsigned char > *message, void */*userData*/ )
 {
+  /*
+  1st Byte           2nd Byte               3rd byte
+    Note on: 144       CC control number      CC control value
+    Note off: 128      Note value             Note velocity
+    CC: 176
+  */
+
   unsigned int nBytes = message->size();
   for ( unsigned int i=0; i<nBytes; i++ )
-    std::cout << "Byte " << i << " = " << (int)message->at(i) << ", ";
-  if ( nBytes > 0 )
-    std::cout << "stamp = " << deltatime << std::endl;
-	if (nBytes == 3 && (int)message->at(0) == 144) {
-		unsigned char note = message->at(1);
+    std::cout << "Byte " << i << " = " << (int)message->at(i) << " ";
+  std::cout << endl;
+  if (nBytes == 3) {
+		unsigned char firstByte = message->at(0);
+		unsigned char secondByte = message->at(1);
+		unsigned char thirdByte = message->at(2);
 		pthread_mutex_lock(&lock);
-		effects.effect = note;
+		effect.byte1 = firstByte;
+		effect.byte2 = secondByte;
+		effect.byte3 = thirdByte;
 		pthread_mutex_unlock(&lock);
-	}
-		
-		
+  } 
+          
 }
 
 // This function should be embedded in a try/catch block in case of

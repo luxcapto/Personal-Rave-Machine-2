@@ -67,12 +67,13 @@ public:
 
 void* effects_main(void* memes)
 {
-	EffectRunner r;
+  EffectRunner r;
 
-  FastEffect e;
-  SlowEffect e2;
-	StopEffect e3;
-  r.setEffect(&e);
+  FastEffect fastEffect;
+  SlowEffect slowEffect;
+  StopEffect stopEffect;
+  
+  r.setEffect(&fastEffect);
 
   r.setMaxFrameRate(100);
   r.setLayout("layouts/grid32x16z.json");
@@ -84,20 +85,23 @@ void* effects_main(void* memes)
 
 	while(loop) {
 	  pthread_mutex_lock(&lock);
-		switch(effects.effect) {
-			case 48:
-				r.setEffect(&e);
-				break;
-			case 49:
-				r.setEffect(&e2);
-				break;
-			default:
-				r.setEffect(&e3);
-		}	
-		pthread_mutex_unlock(&lock);
-		r.doFrame();
+		
+      switch(effect.byte1) {
+        case 144:
+          r.setEffect(&fastEffect);
+          break;
+        case 128:
+          r.setEffect(&stopEffect);
+          break;
+        case 176:
+          break;
+        default:
+          break;		
+      }	
+      pthread_mutex_unlock(&lock);
+      r.doFrame();
 	}
-	r.setEffect(&e3);
+	r.setEffect(&stopEffect);
 	r.doFrame();
 	r.doFrame();
 	r.doFrame();
