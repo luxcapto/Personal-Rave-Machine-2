@@ -39,6 +39,7 @@ void mycallback( double deltatime, std::vector< unsigned char > *message, void *
 		effect.byte1 = firstByte;
 		effect.byte2 = secondByte;
 		effect.byte3 = thirdByte;
+        effect.midiReceived = true;
 		pthread_mutex_unlock(&lock);
   } 
           

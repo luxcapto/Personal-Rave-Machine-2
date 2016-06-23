@@ -11,6 +11,7 @@ typedef struct {
 	int byte1; 
 	int byte2; 
 	int byte3; 
+    bool midiReceived;
 } effects_t;
 
 extern args_t arguments;

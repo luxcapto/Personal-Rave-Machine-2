@@ -4,7 +4,7 @@
 #include "lib/effect.h"
 #include "lib/effect_runner.h"
 #include "lib/noise.h"
-
+using namespace std;
 
 
 class StopEffect : public Effect {
@@ -73,31 +73,49 @@ void* effects_main(void* memes)
   SlowEffect slowEffect;
   StopEffect stopEffect;
   
-  r.setEffect(&fastEffect);
-
   r.setMaxFrameRate(100);
   r.setLayout("layouts/grid32x16z.json");
 	
   if (!r.parseArguments(*(arguments.argc), arguments.argv)) {
-      
 		return (void*)1;
   }
+ 
+  unsigned int noteCounter = 0;
 
-	while(loop) {
-	  pthread_mutex_lock(&lock);
-		
-      switch(effect.byte1) {
-        case 144:
-          r.setEffect(&fastEffect);
-          break;
-        case 128:
-          r.setEffect(&stopEffect);
-          break;
-        case 176:
-          break;
-        default:
-          break;		
-      }	
+  while(loop) {
+    pthread_mutex_lock(&lock);
+      if(effect.midiReceived){
+        switch(effect.byte1) {
+          case 144:
+            if(effect.byte2 == 36) {
+              r.setEffect(&fastEffect);
+              noteCounter++;
+            } else if(effect.byte2 == 37) {
+                r.setEffect(&slowEffect);
+                noteCounter++;
+            }
+            std::cout << "Note on " << noteCounter << endl; 
+            break;
+          case 128:
+            if(effect.byte2 == 36){
+              noteCounter--;
+              if(noteCounter == 0)
+                r.setEffect(&stopEffect);
+            }
+            else if(effect.byte2 == 37){
+              noteCounter--;
+              if(noteCounter == 0)
+                r.setEffect(&stopEffect);
+            }
+            std::cout << "Note off " << noteCounter << endl; 
+            break;
+          case 176:
+            break;
+          default:
+            break;		
+         }
+      }  
+      effect.midiReceived = false;
       pthread_mutex_unlock(&lock);
       r.doFrame();
 	}
