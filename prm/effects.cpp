@@ -74,7 +74,7 @@ void* effects_main(void* memes)
   StopEffect stopEffect;
   
   r.setMaxFrameRate(100);
-  r.setLayout("layouts/grid32x16z.json");
+  r.setLayout("layouts/cube40.json");
 	
   if (!r.parseArguments(*(arguments.argc), arguments.argv)) {
 		return (void*)1;
@@ -89,24 +89,17 @@ void* effects_main(void* memes)
           case 144:
             if(effect.byte2 == 36) {
               r.setEffect(&fastEffect);
-              noteCounter++;
+             // noteCounter++;
             } else if(effect.byte2 == 37) {
                 r.setEffect(&slowEffect);
-                noteCounter++;
+             //   noteCounter++;
             }
             std::cout << "Note on " << noteCounter << endl; 
             break;
           case 128:
-            if(effect.byte2 == 36){
-              noteCounter--;
-              if(noteCounter == 0)
-                r.setEffect(&stopEffect);
-            }
-            else if(effect.byte2 == 37){
-              noteCounter--;
-              if(noteCounter == 0)
-                r.setEffect(&stopEffect);
-            }
+            //noteCounter--;
+            //if(noteCounter == 0)
+              r.setEffect(&stopEffect);
             std::cout << "Note off " << noteCounter << endl; 
             break;
           case 176:
